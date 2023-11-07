@@ -104,25 +104,29 @@ class SplayTree():
         self.root = node
 
 
-    def insert(self, key):
-        if self.root is None:
-            self.root = Node(key)
-            return
+def insert(self, key):
+    z = self.root
+    p = None
 
-        node = self.root
-        while node:
-            if key < node.key:
-                if not node.leftchild:
-                    node.leftchild = Node(key, parent=node)
-                    self._splay(node.leftchild)
-                    break
-                node = node.leftchild
-            else:
-                if not node.rightchild:
-                    node.rightchild = Node(key, parent=node)
-                    self._splay(node.rightchild)
-                    break
-                node = node.rightchild
+    while z:
+        p = z
+        if key < z.key:
+            z = z.leftchild
+        else:
+            z = z.rightchild
+
+    z = Node(key)
+    z.parent = p
+
+    if not p:
+        self.root = z
+    elif key < p.key:
+        p.leftchild = z
+    else:
+        p.rightchild = z
+
+    self._splay(z)
+
 
     def _find_node(self, key):
         node = self.root
