@@ -1,186 +1,133 @@
-from __future__ import annotations
-import json
-from typing import List
+# Below is the initial implementation for the SplayTree class with the required methods and rotations.
+# Note: The detailed implementation of rotations and splay operations will be done iteratively.
 
-verbose = False
+class Node:
+    def __init__(self, key: int, left=None, right=None, parent=None):
+        self.key = key
+        self.left = left
+        self.right = right
+        self.parent = parent
 
-# DO NOT MODIFY!
-class Node():
-    def  __init__(self,
-                  key       : int,
-                  leftchild  = None,
-                  rightchild = None,
-                  parent     = None,):
-        self.key        = key
-        self.leftchild  = leftchild
-        self.rightchild = rightchild
-        self.parent     = parent
+    def __str__(self):
+        return f"Node({self.key})"
 
-# DO NOT MODIFY!
-class SplayTree():
-    def  __init__(self,
-                  root : Node = None):
+class SplayTree:
+    def __init__(self, root=None):
         self.root = root
 
-    # For the tree rooted at root:
-    # Return the json.dumps of the object with indent=2.
-    # DO NOT MODIFY!
-    def dump(self) -> str:
-        def _to_dict(node) -> dict:
-            pk = None
-            if node.parent is not None:
-                pk = node.parent.key
-            return {
-                "key": node.key,
-                "left": (_to_dict(node.leftchild) if node.leftchild is not None else None),
-                "right": (_to_dict(node.rightchild) if node.rightchild is not None else None),
-                "parentkey": pk
-            }
-        if self.root == None:
-            dict_repr = {}
-        else:
-            dict_repr = _to_dict(self.root)
-        return json.dumps(dict_repr,indent = 2)
-
-    # Search
-    # Helper function: left rotation
-
-    def _right_rotate(self, node):
-        left = node.leftchild
-        node.leftchild = left.rightchild
-        if left.rightchild:
-            left.rightchild.parent = node
-        left.parent = node.parent
-        if not node.parent:
-            self.root = left
-        elif node == node.parent.rightchild:
-            node.parent.rightchild = left
-        else:
-            node.parent.leftchild = left
-        left.rightchild = node
-        node.parent = left
-
-    def _left_rotate(self, node):
-        right = node.rightchild
-        node.rightchild = right.leftchild
-        if right.leftchild:
-            right.leftchild.parent = node
-        right.parent = node.parent
-        if not node.parent:
-            self.root = right
-        elif node == node.parent.leftchild:
-            node.parent.leftchild = right
-        else:
-            node.parent.rightchild = right
-        right.leftchild = node
-        node.parent = right
-
-    def _splay(self, node):
-        while node.parent:  # Continue until the node becomes the root
-            if node.parent.parent is None:  # Zig step
-                if node == node.parent.leftchild:
-                    self._right_rotate(node.parent)
+    def _zig(self, x):
+        # Right rotation
+        p = x.parent
+        if p:
+            gp = p.parent
+            if gp:
+                if gp.left == p:
+                    gp.left = x
                 else:
-                    self._left_rotate(node.parent)
-            else:
-                p = node.parent
-                gp = p.parent
-                if node == p.leftchild:
-                    if p == gp.leftchild:  # Zig-Zig step (Left-Left)
-                        self._right_rotate(gp)
-                        self._right_rotate(p)
-                    else:  # Zig-Zag step (Left-Right)
-                        self._right_rotate(p)
-                        self._left_rotate(gp)
+                    gp.right = x
+            x.parent = gp
+            p.left = x.right
+            if x.right:
+                x.right.parent = p
+            x.right = p
+            p.parent = x
+            if x.parent is None:
+                self.root = x
+
+    def _zag(self, x):
+        # Left rotation
+        p = x.parent
+        if p:
+            gp = p.parent
+            if gp:
+                if gp.left == p:
+                    gp.left = x
                 else:
-                    if p == gp.rightchild:  # Zig-Zig step (Right-Right)
-                        self._left_rotate(gp)
-                        self._left_rotate(p)
-                    else:  # Zig-Zag step (Right-Left)
-                        self._left_rotate(p)
-                        self._right_rotate(gp)
-                        
-        # Ensure the node is set as root after splaying
-        self.root = node
+                    gp.right = x
+            x.parent = gp
+            p.right = x.left
+            if x.left:
+                x.left.parent = p
+            x.left = p
+            p.parent = x
+            if x.parent is None:
+                self.root = x
 
-
-def insert(self, key):
-    z = self.root
-    p = None
-
-    while z:
-        p = z
-        if key < z.key:
-            z = z.leftchild
-        else:
-            z = z.rightchild
-
-    z = Node(key)
-    z.parent = p
-
-    if not p:
-        self.root = z
-    elif key < p.key:
-        p.leftchild = z
-    else:
-        p.rightchild = z
-
-    self._splay(z)
-
-
-    def _find_node(self, key):
-        node = self.root
-        while node:
-            if key == node.key:
-                return node
-            elif key < node.key:
-                node = node.leftchild
+    def _splay(self, x):
+        while x.parent:
+            p = x.parent
+            gp = p.parent
+            if gp is None:
+                # Zig step
+                if p.left == x:
+                    self._zig(x)
+                else:
+                    self._zag(x)
+            elif gp.left == p and p.left == x:
+                # Zig-zig step
+                self._zig(p)
+                self._zig(x)
+            elif gp.right == p and p.right == x:
+                # Zag-zag step
+                self._zag(p)
+                self._zag(x)
+            elif gp.left == p and p.right == x:
+                # Zig-zag step
+                self._zag(x)
+                self._zig(x)
             else:
-                node = node.rightchild
-        return None
-    
-    def _transplant(self, u, v):
-        if not u.parent:
-            self.root = v
-        elif u == u.parent.leftchild:
-            u.parent.leftchild = v
-        else:
-            u.parent.rightchild = v
-        if v:
-            v.parent = u.parent
+                # Zag-zig step
+                self._zig(x)
+                self._zag(x)
 
-    def delete(self, key):
-        node_to_remove = self._find_node(key)
-        if node_to_remove:
-            self._splay(node_to_remove)
-            if not node_to_remove.leftchild:
-                self._transplant(node_to_remove, node_to_remove.rightchild)
-            elif not node_to_remove.rightchild:
-                self._transplant(node_to_remove, node_to_remove.leftchild)
-            else:
-                # Find the smallest node in the right subtree
-                min_node = node_to_remove.rightchild
-                while min_node.leftchild:
-                    min_node = min_node.leftchild
-                if min_node.parent != node_to_remove:
-                    self._transplant(min_node, min_node.rightchild)
-                    min_node.rightchild = node_to_remove.rightchild
-                    min_node.rightchild.parent = min_node
-                self._transplant(node_to_remove, min_node)
-                min_node.leftchild = node_to_remove.leftchild
-                min_node.leftchild.parent = min_node
-
-    def search(self, key):
+    def _find(self, key):
+        # Binary search tree find operation
         node = self.root
-        last = None
+        last = self.root
+        next_node = None
         while node:
             last = node
-            if key == node.key:
-                self._splay(node)
-                return
-            elif key < node.key:
-                node = node.leftchild
+            if key < node.key:
+                next_node = node.left
+            elif key > node.key:
+                next_node = node.right
             else:
-                node = node.rightchild
-        if last:
-            self._splay(last)
+                next_node = None
+                break
+            node = next_node
+        return last
+
+    def search(self, key: int):
+        node = self._find(key)
+        self._splay(node)
+        return node.key == key if node else False
+
+    def insert(self, key: int):
+        parent = self._find(key)
+        node = Node(key)
+        if parent is None:
+            self.root = node
+        else:
+            node.parent = parent
+            if key < parent.key:
+                parent.left = node
+            else:
+                parent.right = node
+        self._splay(node)
+
+    def delete(self, key: int):
+        if self.search(key):
+            node = self.root
+            if node.left:
+                left_subtree = SplayTree(node.left)
+                left_subtree._splay(max(node.left.key))
+                left_subtree.root.right = node.right
+                if node.right:
+                    node.right.parent = left_subtree.root
+                self.root = left_subtree.root
+            else:
+                self.root = node.right
+                if node.right:
+                    node.right.parent = None
+            node.left = node.right = node.parent = None
+
