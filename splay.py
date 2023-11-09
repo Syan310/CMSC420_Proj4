@@ -68,10 +68,10 @@ class SplayTree:
     def _left_rotate(self, x):
         y = x.rightchild
         x.rightchild = y.leftchild
-        if y.leftchild:
+        if y.leftchild is not None:
             y.leftchild.parent = x
         y.parent = x.parent
-        if not x.parent:
+        if x.parent is None:
             self.root = y
         elif x == x.parent.leftchild:
             x.parent.leftchild = y
@@ -83,10 +83,10 @@ class SplayTree:
     def _right_rotate(self, x):
         y = x.leftchild
         x.leftchild = y.rightchild
-        if y.rightchild:
+        if y.rightchild is not None:
             y.rightchild.parent = x
         y.parent = x.parent
-        if not x.parent:
+        if x.parent is None:
             self.root = y
         elif x == x.parent.rightchild:
             x.parent.rightchild = y
