@@ -30,27 +30,10 @@ class SplayTree:
 
     def _splay(self, node):
         while node.parent:  # Continue until node is the root
-            if node.parent.parent is None:  # Zig
-                if node == node.parent.leftchild:
-                    self._right_rotate(node.parent)
-                else:
-                    self._left_rotate(node.parent)
+            if node == node.parent.leftchild:
+                self._right_rotate(node.parent)
             else:
-                grandparent = node.parent.parent
-                if node == node.parent.leftchild:
-                    if node.parent == grandparent.leftchild:  # Zig-Zig
-                        self._right_rotate(grandparent)
-                        self._right_rotate(node.parent)
-                    else:  # Zig-Zag
-                        self._right_rotate(node.parent)
-                        self._left_rotate(grandparent)
-                else:
-                    if node.parent == grandparent.rightchild:  # Zig-Zig
-                        self._left_rotate(grandparent)
-                        self._left_rotate(node.parent)
-                    else:  # Zig-Zag
-                        self._left_rotate(node.parent)
-                        self._right_rotate(grandparent)
+                self._left_rotate(node.parent)
 
    
     def _left_rotate(self, x):
