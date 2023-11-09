@@ -107,7 +107,7 @@ class SplayTree:
                 node = node.rightchild
         return None
 
-def insert(self, key: int):
+    def insert(self, key: int):
         parent = None
         node = self.root
         while node:
