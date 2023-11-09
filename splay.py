@@ -158,31 +158,23 @@ class SplayTree:
     def delete(self, key: int):
         node_to_delete = self.search(key)  # This will splay the node if it exists
         if node_to_delete:
-            # Node has two children
-            if node_to_delete.leftchild and node_to_delete.rightchild:
-                successor = self._find_min(node_to_delete.rightchild)
-                if successor.parent != node_to_delete:
-                    self._transplant(successor, successor.rightchild)
-                    successor.rightchild = node_to_delete.rightchild
-                    successor.rightchild.parent = successor
-                self._transplant(node_to_delete, successor)
-                successor.leftchild = node_to_delete.leftchild
-                successor.leftchild.parent = successor
-                self.root = successor
-            # Node has only left child
-            elif node_to_delete.leftchild:
-                self._transplant(node_to_delete, node_to_delete.leftchild)
-                self._splay(node_to_delete.leftchild)  # Splay the child to the root
-            # Node has only right child
-            elif node_to_delete.rightchild:
-                self._transplant(node_to_delete, node_to_delete.rightchild)
-                self._splay(node_to_delete.rightchild)  # Splay the child to the root
-            # Node has no children
-            else:
+            # If the node to delete is the root and has no children, just remove it.
+            if node_to_delete == self.root and not node_to_delete.leftchild and not node_to_delete.rightchild:
                 self.root = None
+
+            # If the node to delete has a left child, splay the max node in the left subtree.
+            elif node_to_delete.leftchild:
+                max_left = self._find_max(node_to_delete.leftchild)
+                self._splay(max_left)
+                # Replace the root with max_left and attach the right subtree.
+                max_left.rightchild = node_to_delete.rightchild
+                if node_to_delete.rightchild:
+                    node_to_delete.rightchild.parent = max_left
+                self.root = max_left
+
+            # If the node to delete only has a right child, make the right child the new root.
+            elif node_to_delete.rightchild:
+                self.root = node_to_delete.rightchild
+                self.root.parent = None
+
             del node_to_delete
-
-
-    
-
-# This code should be tested thoroughly to ensure its correctness.
