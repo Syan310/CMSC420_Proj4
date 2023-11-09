@@ -58,13 +58,23 @@ class SplayTree:
 
     def _splay(self, node):
         while node.parent:
-            if not node.parent.parent:
-                self._zig(node)
-            elif (node.parent.leftchild == node) == (node.parent.parent.leftchild == node.parent):
-                self._zig_zig(node)
-            else:
-                self._zig_zag(node)
-
+            if node.parent.parent is None:  # Zig step
+                if node == node.parent.leftchild:
+                    self._right_rotate(node.parent)
+                else:
+                    self._left_rotate(node.parent)
+            elif node == node.parent.leftchild and node.parent == node.parent.parent.leftchild:  # Zig-Zig step
+                self._right_rotate(node.parent.parent)
+                self._right_rotate(node.parent)
+            elif node == node.parent.rightchild and node.parent == node.parent.parent.rightchild:  # Zig-Zig step
+                self._left_rotate(node.parent.parent)
+                self._left_rotate(node.parent)
+            elif node == node.parent.rightchild and node.parent == node.parent.parent.leftchild:  # Zig-Zag step
+                self._left_rotate(node.parent)
+                self._right_rotate(node.parent)
+            else:  # Zig-Zag step
+                self._right_rotate(node.parent)
+                self._left_rotate(node.parent)
     def _left_rotate(self, x):
         y = x.rightchild
         x.rightchild = y.leftchild
@@ -108,29 +118,28 @@ class SplayTree:
         return None
 
     def insert(self, key: int):
-        parent = None
         node = self.root
-        while node:
+        parent = None
+        while node is not None:
             parent = node
             if key < node.key:
                 node = node.leftchild
             elif key > node.key:
                 node = node.rightchild
-            else:  # key == node.key
+            else:  # Key already exists, splay the node and return.
                 self._splay(node)
-                return  # Early exit if key exists
+                return
 
-        new_node = Node(key)
-        if not parent:
+        new_node = Node(key, parent=parent)
+        if parent is None:
             self.root = new_node
+        elif key < parent.key:
+            parent.leftchild = new_node
         else:
-            if key < parent.key:
-                parent.leftchild = new_node
-            else:
-                parent.rightchild = new_node
-            new_node.parent = parent
-            self._splay(new_node)  # Splay the new node to the root
+            parent.rightchild = new_node
 
+        self._splay(new_node)
+        
     def delete(self, key: int):
         node = self.search(key)
         if node:
