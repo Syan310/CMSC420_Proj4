@@ -28,34 +28,6 @@ class SplayTree:
             }
         return json.dumps(_to_dict(self.root) if self.root else {}, indent=2)
 
-    def _zig(self, node):
-        # Single right rotation
-        if node.parent.leftchild == node:
-            self._right_rotate(node.parent)
-        # Single left rotation
-        else:
-            self._left_rotate(node.parent)
-
-    def _zig_zig(self, node):
-        # Double right rotation
-        if node.parent.leftchild == node:
-            self._right_rotate(node.parent.parent)
-            self._right_rotate(node.parent)
-        # Double left rotation
-        else:
-            self._left_rotate(node.parent.parent)
-            self._left_rotate(node.parent)
-
-    def _zig_zag(self, node):
-        # Right then left rotation
-        if node.parent.leftchild == node:
-            self._right_rotate(node.parent)
-            self._left_rotate(node.parent)
-        # Left then right rotation
-        else:
-            self._left_rotate(node.parent)
-            self._right_rotate(node.parent)
-
     def _splay(self, node):
         while node.parent:  # Continue until node is the root
             if node.parent.parent is None:  # Zig
@@ -77,8 +49,27 @@ class SplayTree:
                 else:  # Zig-Zig
                     self._left_rotate(grandparent)
                     self._left_rotate(node.parent)
-
-                        
+        while node.parent:  # Continue until node is the root
+            if node.parent.parent is None:  # Zig
+                if node == node.parent.leftchild:
+                    self._right_rotate(node.parent)
+                else:
+                    self._left_rotate(node.parent)
+            else:
+                grandparent = node.parent.parent
+                if node == node.parent.rightchild and node.parent == grandparent.leftchild:  # Zig-Zag
+                    self._left_rotate(node.parent)
+                    self._right_rotate(grandparent)
+                elif node == node.parent.leftchild and node.parent == grandparent.rightchild:  # Zig-Zag
+                    self._right_rotate(node.parent)
+                    self._left_rotate(grandparent)
+                elif node == node.parent.leftchild and node.parent == grandparent.leftchild:  # Zig-Zig
+                    self._right_rotate(grandparent)
+                    self._right_rotate(node.parent)
+                else:  # Zig-Zig
+                    self._left_rotate(grandparent)
+                    self._left_rotate(node.parent)
+   
     def _left_rotate(self, x):
         y = x.rightchild
         x.rightchild = y.leftchild
