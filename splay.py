@@ -151,21 +151,22 @@ class SplayTree:
 
     def search(self, key: int) -> Optional[Node]:
         node = self.root
+        last_visited = None
         while node:
+            last_visited = node
             if key == node.key:
                 self._splay(node)
                 return node
             elif key < node.key:
-                if node.leftchild:
-                    node = node.leftchild
-                else:
-                    return None  # The node is not found; stop the search.
+                node = node.leftchild
             else:
-                if node.rightchild:
-                    node = node.rightchild
-                else:
-                    return None  # The node is not found; stop the search.
-        return None  # The node is not found; stop the search.
+                node = node.rightchild
+
+        if last_visited:
+            self._splay(last_visited)
+
+        return None  # Return None to indicate the search failed, but the last visited node was splayed.
+
 
     def _transplant(self, u, v):
         if not u.parent:
