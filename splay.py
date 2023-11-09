@@ -99,38 +99,54 @@ class SplayTree:
 
     def insert(self, key: int):
         new_node = Node(key)
+        # If the tree is empty, insert the new node as the root.
         if not self.root:
             self.root = new_node
             return
 
+        # Step 1: Find the node if it already exists.
         node = self._find_node(key)
         if node:
+            # The node is already in the tree, splay it to the root.
             self._splay(node)
-            return  # Node already in the tree, so we splay and exit.
-
-        # Find in-order predecessor if it exists
-        predecessor = self._find_max(self.root.leftchild)
-        if predecessor:
-            self._splay(predecessor)
-            predecessor.rightchild = new_node
-            new_node.parent = predecessor
-            return
-
-        # Find in-order successor if it exists
-        successor = self._find_min(self.root.rightchild)
-        if successor:
-            self._splay(successor)
-            successor.leftchild = new_node
-            new_node.parent = successor
-            return
-
-        # If there's no predecessor or successor, the tree is a single node
-        # Insert the new node as the appropriate child of the root.
-        if key < self.root.key:
-            self.root.leftchild = new_node
         else:
-            self.root.rightchild = new_node
-        new_node.parent = self.root
+            # Step 2: The node is not in the tree; we need to find the in-order predecessor or successor.
+            node = self.root
+            while True:
+                if key < node.key:
+                    if node.leftchild:
+                        node = node.leftchild
+                    else:
+                        # The in-order predecessor is the rightmost node of the left subtree.
+                        # If the left subtree does not exist, then the current node is the in-order successor.
+                        break
+                else:
+                    if node.rightchild:
+                        node = node.rightchild
+                    else:
+                        # The in-order successor is the leftmost node of the right subtree.
+                        # If the right subtree does not exist, then the current node is the in-order predecessor.
+                        break
+            
+            # Step 3: Splay the in-order predecessor or successor.
+            self._splay(node)
+
+            # Step 4: Insert the new node and adjust the tree.
+            if key < node.key:
+                new_node.rightchild = node
+                new_node.leftchild = node.leftchild
+                if node.leftchild:
+                    node.leftchild.parent = new_node
+                node.leftchild = None
+            else:
+                new_node.leftchild = node
+                new_node.rightchild = node.rightchild
+                if node.rightchild:
+                    node.rightchild.parent = new_node
+                node.rightchild = None
+            node.parent = new_node
+            self.root = new_node
+
 
 
     def search(self, key: int):
