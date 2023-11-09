@@ -158,21 +158,24 @@ class SplayTree:
     def delete(self, key: int):
         node_to_delete = self.search(key)  # This will splay the node if it exists
         if node_to_delete:
-            if node_to_delete.leftchild:
-                # Splay the maximum node in the left subtree to the root
-                max_node_in_left = self._find_max(node_to_delete.leftchild)
-                self._splay(max_node_in_left)
-                # Attach the right subtree of the node to delete to the new root
-                max_node_in_left.rightchild = node_to_delete.rightchild
-                if node_to_delete.rightchild:
-                    node_to_delete.rightchild.parent = max_node_in_left
-            elif node_to_delete.rightchild:
-                # If there's no left child, the right child should be the new root
-                self._splay(node_to_delete.rightchild)
-                self.root = node_to_delete.rightchild
-                self.root.parent = None
+            # If the node to delete is the root and has two children
+            if node_to_delete.leftchild and node_to_delete.rightchild:
+                successor = self._find_min(node_to_delete.rightchild)
+                if successor.parent != node_to_delete:
+                    # Splay the successor if it's not a direct child of the node to delete
+                    self._splay(successor)
+                    successor.leftchild = node_to_delete.leftchild
+                    node_to_delete.leftchild.parent = successor
+                self.root = successor
+                successor.parent = None
+            elif node_to_delete.leftchild or node_to_delete.rightchild:
+                # If the node to delete is the root and has only one child
+                child = node_to_delete.leftchild if node_to_delete.leftchild else node_to_delete.rightchild
+                self._splay(child)
+                self.root = child
+                child.parent = None
             else:
-                # If the node to delete has no children, the root becomes None
+                # The node to delete is the root and has no children
                 self.root = None
 
             # Delete the node
