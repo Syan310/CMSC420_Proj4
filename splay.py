@@ -107,7 +107,7 @@ class SplayTree:
                 node = node.rightchild
         return None
 
-    def insert(self, key: int):
+def insert(self, key: int):
         parent = None
         node = self.root
         while node:
@@ -118,16 +118,18 @@ class SplayTree:
                 node = node.rightchild
             else:  # key == node.key
                 self._splay(node)
-                return
+                return  # Early exit if key exists
 
-        new_node = Node(key, parent=parent)
+        new_node = Node(key)
         if not parent:
             self.root = new_node
-        elif key < parent.key:
-            parent.leftchild = new_node
         else:
-            parent.rightchild = new_node
-        self._splay(new_node)
+            if key < parent.key:
+                parent.leftchild = new_node
+            else:
+                parent.rightchild = new_node
+            new_node.parent = parent
+            self._splay(new_node)  # Splay the new node to the root
 
     def delete(self, key: int):
         node = self.search(key)
