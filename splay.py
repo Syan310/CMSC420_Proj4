@@ -158,23 +158,22 @@ class SplayTree:
     def delete(self, key: int):
         node_to_delete = self.search(key)  # This will splay the node if it exists
         if node_to_delete:
-            # If the node to delete is the root and has no children, just remove it.
-            if node_to_delete == self.root and not node_to_delete.leftchild and not node_to_delete.rightchild:
-                self.root = None
-
-            # If the node to delete has a left child, splay the max node in the left subtree.
-            elif node_to_delete.leftchild:
-                max_left = self._find_max(node_to_delete.leftchild)
-                self._splay(max_left)
-                # Replace the root with max_left and attach the right subtree.
-                max_left.rightchild = node_to_delete.rightchild
+            if node_to_delete.leftchild:
+                # Splay the maximum node in the left subtree to the root
+                max_node_in_left = self._find_max(node_to_delete.leftchild)
+                self._splay(max_node_in_left)
+                # Attach the right subtree of the node to delete to the new root
+                max_node_in_left.rightchild = node_to_delete.rightchild
                 if node_to_delete.rightchild:
-                    node_to_delete.rightchild.parent = max_left
-                self.root = max_left
-
-            # If the node to delete only has a right child, make the right child the new root.
+                    node_to_delete.rightchild.parent = max_node_in_left
             elif node_to_delete.rightchild:
+                # If there's no left child, the right child should be the new root
+                self._splay(node_to_delete.rightchild)
                 self.root = node_to_delete.rightchild
                 self.root.parent = None
+            else:
+                # If the node to delete has no children, the root becomes None
+                self.root = None
 
+            # Delete the node
             del node_to_delete
