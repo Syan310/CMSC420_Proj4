@@ -167,31 +167,40 @@ class SplayTree:
                     return None  # The node is not found; stop the search.
         return None  # The node is not found; stop the search.
 
-
+    def _transplant(self, u, v):
+        if not u.parent:
+            self.root = v
+        elif u == u.parent.leftchild:
+            u.parent.leftchild = v
+        else:
+            u.parent.rightchild = v
+        if v:
+            v.parent = u.parent
+            
     def delete(self, key: int):
         node_to_delete = self.search(key)  # This will splay the node if it exists
         if node_to_delete:
             if node_to_delete.leftchild and node_to_delete.rightchild:
                 successor = self._find_min(node_to_delete.rightchild)
                 if successor.parent != node_to_delete:
-                    self._splay(successor)
-                    successor.leftchild = node_to_delete.leftchild
-                    node_to_delete.leftchild.parent = successor
-                successor.rightchild = node_to_delete.rightchild
-                node_to_delete.rightchild.parent = successor if successor.rightchild else None
+                    self._transplant(successor, successor.rightchild)
+                    successor.rightchild = node_to_delete.rightchild
+                    successor.rightchild.parent = successor
+                self._transplant(node_to_delete, successor)
+                successor.leftchild = node_to_delete.leftchild
+                successor.leftchild.parent = successor
                 self.root = successor
-            elif node_to_delete.leftchild or node_to_delete.rightchild:
-                child = node_to_delete.leftchild if node_to_delete.leftchild else node_to_delete.rightchild
-                self._transplant(node_to_delete, child)
-                self._splay(child)
+            elif node_to_delete.leftchild:
+                self._transplant(node_to_delete, node_to_delete.leftchild)
+            elif node_to_delete.rightchild:
+                self._transplant(node_to_delete, node_to_delete.rightchild)
             else:
-                if node_to_delete == self.root:
-                    self.root = None
-                else:
-                    self._splay(node_to_delete.parent)
-                    if node_to_delete == node_to_delete.parent.leftchild:
-                        node_to_delete.parent.leftchild = None
-                    else:
-                        node_to_delete.parent.rightchild = None
+                self.root = None  # The deleted node was the last node in the tree
+
+            # Set the new root's parent to None
+            if self.root:
+                self.root.parent = None
             del node_to_delete
+
+
 
