@@ -186,11 +186,12 @@ class SplayTree:
                 if successor.parent != node_to_delete:
                     self._transplant(successor, successor.rightchild)
                     successor.rightchild = node_to_delete.rightchild
-                    successor.rightchild.parent = successor
-                self._transplant(node_to_delete, successor)
+                    if node_to_delete.rightchild:  # Check if the node to delete has a right child
+                        node_to_delete.rightchild.parent = successor
                 successor.leftchild = node_to_delete.leftchild
-                successor.leftchild.parent = successor
-                self.root = successor
+                if node_to_delete.leftchild:  # Check if the node to delete has a left child
+                    node_to_delete.leftchild.parent = successor
+                self._transplant(node_to_delete, successor)
             elif node_to_delete.leftchild:
                 self._transplant(node_to_delete, node_to_delete.leftchild)
             elif node_to_delete.rightchild:
