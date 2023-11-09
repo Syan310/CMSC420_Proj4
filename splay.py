@@ -57,24 +57,29 @@ class SplayTree:
             self._right_rotate(node.parent)
 
     def _splay(self, node):
-        while node.parent:
-            if node.parent.parent is None:  # Zig step
+        while node.parent:  # Continue until node is the root
+            if node.parent.parent is None:  # Zig
                 if node == node.parent.leftchild:
                     self._right_rotate(node.parent)
                 else:
                     self._left_rotate(node.parent)
-            elif node == node.parent.leftchild and node.parent == node.parent.parent.leftchild:  # Zig-Zig step
-                self._right_rotate(node.parent.parent)
-                self._right_rotate(node.parent)
-            elif node == node.parent.rightchild and node.parent == node.parent.parent.rightchild:  # Zig-Zig step
-                self._left_rotate(node.parent.parent)
-                self._left_rotate(node.parent)
-            elif node == node.parent.rightchild and node.parent == node.parent.parent.leftchild:  # Zig-Zag step
-                self._left_rotate(node.parent)
-                self._right_rotate(node.parent)
-            else:  # Zig-Zag step
-                self._right_rotate(node.parent)
-                self._left_rotate(node.parent)
+            else:
+                if node == node.parent.leftchild:
+                    if node.parent == node.parent.parent.leftchild:  # Zig-Zig
+                        self._right_rotate(node.parent.parent)
+                        self._right_rotate(node.parent)
+                    else:  # Zig-Zag
+                        self._right_rotate(node.parent)
+                        self._left_rotate(node.parent)
+                else:
+                    if node.parent == node.parent.parent.rightchild:  # Zig-Zig
+                        self._left_rotate(node.parent.parent)
+                        self._left_rotate(node.parent)
+                    else:  # Zig-Zag
+                        self._left_rotate(node.parent)
+                        self._right_rotate(node.parent)
+                        
+                        
     def _left_rotate(self, x):
         y = x.rightchild
         x.rightchild = y.leftchild
