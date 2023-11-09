@@ -149,44 +149,49 @@ class SplayTree:
 
 
 
-    def search(self, key: int):
-        node = self._find_node(key)
-        if node:
-            self._splay(node)
-        return node
+    def search(self, key: int) -> Optional[Node]:
+        node = self.root
+        while node:
+            if key == node.key:
+                self._splay(node)
+                return node
+            elif key < node.key:
+                if node.leftchild:
+                    node = node.leftchild
+                else:
+                    return None  # The node is not found; stop the search.
+            else:
+                if node.rightchild:
+                    node = node.rightchild
+                else:
+                    return None  # The node is not found; stop the search.
+        return None  # The node is not found; stop the search.
+
 
     def delete(self, key: int):
-        node_to_delete = self.search(key)  # This will splay the node to the root if it exists
+        node_to_delete = self.search(key)  # This will splay the node if it exists
         if node_to_delete:
-            # If the node to delete has two children
             if node_to_delete.leftchild and node_to_delete.rightchild:
-                # Splay the in-order successor or predecessor
                 successor = self._find_min(node_to_delete.rightchild)
-                self._splay(successor)
-                # No need to transplant if successor is a direct child
                 if successor.parent != node_to_delete:
-                    self._transplant(successor, successor.rightchild)
-                    successor.rightchild = node_to_delete.rightchild
-                    successor.rightchild.parent = successor
-                successor.leftchild = node_to_delete.leftchild
-                if node_to_delete.leftchild:
+                    self._splay(successor)
+                    successor.leftchild = node_to_delete.leftchild
                     node_to_delete.leftchild.parent = successor
+                successor.rightchild = node_to_delete.rightchild
+                node_to_delete.rightchild.parent = successor if successor.rightchild else None
                 self.root = successor
             elif node_to_delete.leftchild or node_to_delete.rightchild:
-                # If the node to delete has only one child, splay the child and make it the new root
                 child = node_to_delete.leftchild if node_to_delete.leftchild else node_to_delete.rightchild
                 self._transplant(node_to_delete, child)
-                self._splay(child)  # This line is the key difference
+                self._splay(child)
             else:
-                # If the node to delete is the root and has no children, set root to None
                 if node_to_delete == self.root:
                     self.root = None
                 else:
-                    # If the node to delete is not the root and has no children, splay the parent
-                    parent = node_to_delete.parent
-                    if node_to_delete == parent.leftchild:
-                        parent.leftchild = None
+                    self._splay(node_to_delete.parent)
+                    if node_to_delete == node_to_delete.parent.leftchild:
+                        node_to_delete.parent.leftchild = None
                     else:
-                        parent.rightchild = None
-                    self._splay(parent)  # Splay the parent to the root
+                        node_to_delete.parent.rightchild = None
             del node_to_delete
+
