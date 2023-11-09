@@ -156,35 +156,32 @@ class SplayTree:
         return node
 
     def delete(self, key: int):
-        node = self._find_node(key)
-        if not node:
-            return  # Node not found, nothing to delete.
-
-        self._splay(node)
-        if not node.leftchild and not node.rightchild:
-            # Node is the only node in the tree.
-            self.root = None
-        elif not node.leftchild or not node.rightchild:
-            # Node has only one child.
-            self.root = node.leftchild if node.leftchild else node.rightchild
-            self.root.parent = None
-        else:
-            # Node has two children.
-            successor = self._find_min(node.rightchild)
-            if successor:
-                if successor.parent != node:
+        node_to_delete = self.search(key)  # This will splay the node if it exists
+        if node_to_delete:
+            # Node has two children
+            if node_to_delete.leftchild and node_to_delete.rightchild:
+                successor = self._find_min(node_to_delete.rightchild)
+                if successor.parent != node_to_delete:
                     self._transplant(successor, successor.rightchild)
-                    successor.rightchild = node.rightchild
+                    successor.rightchild = node_to_delete.rightchild
                     successor.rightchild.parent = successor
-                self._transplant(node, successor)
-                successor.leftchild = node.leftchild
+                self._transplant(node_to_delete, successor)
+                successor.leftchild = node_to_delete.leftchild
                 successor.leftchild.parent = successor
+                self.root = successor
+            # Node has only left child
+            elif node_to_delete.leftchild:
+                self._transplant(node_to_delete, node_to_delete.leftchild)
+                self._splay(node_to_delete.leftchild)  # Splay the child to the root
+            # Node has only right child
+            elif node_to_delete.rightchild:
+                self._transplant(node_to_delete, node_to_delete.rightchild)
+                self._splay(node_to_delete.rightchild)  # Splay the child to the root
+            # Node has no children
             else:
-                # If there's no successor, then node is the maximum and has only a left child.
-                self.root = node.leftchild
-                self.root.parent = None
+                self.root = None
+            del node_to_delete
 
-        del node  # Node is now disconnected from the tree and can be deleted.
 
     
 
