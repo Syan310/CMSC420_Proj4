@@ -1,30 +1,41 @@
 from __future__ import annotations
 import json
+from typing import List
 from typing import Optional
 
+verbose = False
+
 class Node:
-    def __init__(self, key: int, leftchild: Optional[Node] = None, rightchild: Optional[Node] = None, parent: Optional[Node] = None):
+    def __init__(self, key: int, leftchild: None, rightchild: None, parent: None):
         self.key = key
         self.leftchild = leftchild
         self.rightchild = rightchild
         self.parent = parent
 
 class SplayTree:
-    def __init__(self, root: Optional[Node] = None):
+    def __init__(self, root: None):
         self.root = root
-
+        
+# For the tree rooted at root:
+    # Return the json.dumps of the object with indent=2.
+    # DO NOT MODIFY!
     def dump(self) -> str:
-            def _to_dict(node: Optional[Node]) -> dict:
-                if not node:
-                    return None
-                pk = node.parent.key if node.parent else None
-                return {
-                    "key": node.key,
-                    "left": _to_dict(node.leftchild),
-                    "right": _to_dict(node.rightchild),
-                    "parentkey": pk
-                }
-            return json.dumps(_to_dict(self.root), indent=2)
+        def _to_dict(node) -> dict:
+            pk = None
+            if node.parent is not None:
+                pk = node.parent.key
+            return {
+                "key": node.key,
+                "left": (_to_dict(node.leftchild) if node.leftchild is not None else None),
+                "right": (_to_dict(node.rightchild) if node.rightchild is not None else None),
+                "parentkey": pk
+            }
+        if self.root == None:
+            dict_repr = {}
+        else:
+            dict_repr = _to_dict(self.root)
+        return json.dumps(dict_repr,indent = 2)
+    
         
     def splay(self, node: Optional[Node]):
         while node.parent:
@@ -76,25 +87,6 @@ class SplayTree:
         left_child.right = node
         node.up = left_child
 
-
-    def search(self, key: int) -> Optional[Node]:
-        node = self.root
-        last_visited = None
-        while node:
-            last_visited = node
-            if key == node.key:
-                self.splay(node)
-                return node
-            elif key < node.key:
-                node = node.leftchild
-            else:
-                node = node.rightchild
-
-        if last_visited:
-            self.splay(last_visited)
-
-        return None  
-    
     def _find_node(self, key: int) -> Optional[Node]:
         node = self.root
         while node:
@@ -117,8 +109,24 @@ class SplayTree:
         return node
 
 
+    def search(self, key: int) -> Optional[Node]:
+        node = self.root
+        last_visited = None
+        while node:
+            last_visited = node
+            if key == node.key:
+                self.splay(node)
+                return node
+            elif key < node.key:
+                node = node.leftchild
+            else:
+                node = node.rightchild
 
+        if last_visited:
+            self.splay(last_visited)
 
+        return None  
+    
     def insert(self, key: int):
         new_node = Node(key)
       
@@ -164,11 +172,6 @@ class SplayTree:
                 node.rightchild = None
             node.parent = new_node
             self.root = new_node
-
-
-
-
-
 
     def _transplant(self, u, v):
         if not u.parent:
