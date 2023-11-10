@@ -1,43 +1,32 @@
 from __future__ import annotations
 import json
-from typing import List
 from typing import Optional
 
-verbose = False
-
 class Node:
-    def __init__(self, key: int, leftchild: None, rightchild: None, parent: None):
+    def __init__(self, key: int, leftchild: Optional[Node] = None, rightchild: Optional[Node] = None, parent: Optional[Node] = None):
         self.key = key
         self.leftchild = leftchild
         self.rightchild = rightchild
         self.parent = parent
 
 class SplayTree:
-    def __init__(self, root: None):
+    def __init__(self, root: Optional[Node] = None):
         self.root = root
-        
-# For the tree rooted at root:
-    # Return the json.dumps of the object with indent=2.
-    # DO NOT MODIFY!
+
     def dump(self) -> str:
-        def _to_dict(node) -> dict:
-            pk = None
-            if node.parent is not None:
-                pk = node.parent.key
-            return {
-                "key": node.key,
-                "left": (_to_dict(node.leftchild) if node.leftchild is not None else None),
-                "right": (_to_dict(node.rightchild) if node.rightchild is not None else None),
-                "parentkey": pk
-            }
-        if self.root == None:
-            dict_repr = {}
-        else:
-            dict_repr = _to_dict(self.root)
-        return json.dumps(dict_repr,indent = 2)
-    
+            def _to_dict(node: Optional[Node]) -> dict:
+                if not node:
+                    return None
+                pk = node.parent.key if node.parent else None
+                return {
+                    "key": node.key,
+                    "left": _to_dict(node.leftchild),
+                    "right": _to_dict(node.rightchild),
+                    "parentkey": pk
+                }
+            return json.dumps(_to_dict(self.root), indent=2)
         
-    def splay(self, node: Optional[Node]):
+    def _splay(self, node: Optional[Node]):
         while node.parent:
             if not node.parent.parent:
                 if node.parent.leftchild == node:
@@ -57,35 +46,37 @@ class SplayTree:
                 self._left_rotate(node.parent)
                 self._right_rotate(node.parent)
 
-    def rotate_left(self, node: Node):
-        right_child = node.right
-        node.right = right_child.left
-        if right_child.left:
-            right_child.left.up = node
-        right_child.up = node.up
-        if not node.up:
-            self.top = right_child
-        elif node is node.up.left:
-            node.up.left = right_child
-        else:
-            node.up.right = right_child
-        right_child.left = node
-        node.up = right_child
 
-    def rotate_right(self, node: Node):
-        left_child = node.left
-        node.left = left_child.right
-        if left_child.right:
-            left_child.right.up = node
-        left_child.up = node.up
-        if not node.up:
-            self.top = left_child
-        elif node is node.up.right:
-            node.up.right = left_child
+
+    def _left_rotate(self, x: Node):
+        y = x.rightchild
+        x.rightchild = y.leftchild
+        if y.leftchild:
+            y.leftchild.parent = x
+        y.parent = x.parent
+        if not x.parent:
+            self.root = y
+        elif x == x.parent.leftchild:
+            x.parent.leftchild = y
         else:
-            node.up.left = left_child
-        left_child.right = node
-        node.up = left_child
+            x.parent.rightchild = y
+        y.leftchild = x
+        x.parent = y
+
+    def _right_rotate(self, x: Node):
+        y = x.leftchild
+        x.leftchild = y.rightchild
+        if y.rightchild:
+            y.rightchild.parent = x
+        y.parent = x.parent
+        if not x.parent:
+            self.root = y
+        elif x == x.parent.rightchild:
+            x.parent.rightchild = y
+        else:
+            x.parent.leftchild = y
+        y.rightchild = x
+        x.parent = y
 
     def _find_node(self, key: int) -> Optional[Node]:
         node = self.root
@@ -98,12 +89,7 @@ class SplayTree:
                 node = node.rightchild
         return None
 
-    def _find_max(self, node: Optional[Node]) -> Optional[Node]:
-        while node and node.rightchild:
-            node = node.rightchild
-        return node    
-   
-    def _find_min(self, node: Optional[Node]) -> Optional[Node]:
+    def min(self, node: Optional[Node]) -> Optional[Node]:
         while node and node.leftchild:
             node = node.leftchild
         return node
@@ -115,7 +101,7 @@ class SplayTree:
         while node:
             last_visited = node
             if key == node.key:
-                self.splay(node)
+                self._splay(node)
                 return node
             elif key < node.key:
                 node = node.leftchild
@@ -123,24 +109,21 @@ class SplayTree:
                 node = node.rightchild
 
         if last_visited:
-            self.splay(last_visited)
+            self._splay(last_visited)
 
         return None  
-    
+
+
     def insert(self, key: int):
         new_node = Node(key)
-      
         if not self.root:
             self.root = new_node
             return
-
-      
+        
         node = self._find_node(key)
         if node:
-           
-            self.splay(node)
+            self._splay(node)
         else:
-           
             node = self.root
             while True:
                 if key < node.key:
@@ -154,10 +137,10 @@ class SplayTree:
                     else:
                         break
             
-           
-            self.splay(node)
+          
+            self._splay(node)
 
-            
+           
             if key < node.key:
                 new_node.rightchild = node
                 new_node.leftchild = node.leftchild
@@ -173,6 +156,8 @@ class SplayTree:
             node.parent = new_node
             self.root = new_node
 
+
+
     def _transplant(self, u, v):
         if not u.parent:
             self.root = v
@@ -184,29 +169,29 @@ class SplayTree:
             v.parent = u.parent
 
     def delete(self, key: int):
-        to_delete = self.search(key)  
-        if to_delete:
-            if to_delete.leftchild and to_delete.rightchild:
-                successor = self._find_min(to_delete.rightchild)
-                if successor.parent != to_delete:
+        node_to_delete = self.search(key)  
+        if node_to_delete:
+            if node_to_delete.leftchild and node_to_delete.rightchild:
+               
+                successor = self.min(node_to_delete.rightchild)
+                if successor.parent != node_to_delete:
                     self._splay(successor)
-                    self._transplant(to_delete, successor)
-                    successor.leftchild = to_delete.leftchild
-                    to_delete.leftchild.parent = successor
+                    self._transplant(node_to_delete, successor)
+                    successor.leftchild = node_to_delete.leftchild
+                    node_to_delete.leftchild.parent = successor
                 else:
-                    self._transplant(to_delete, successor)
-                    successor.leftchild = to_delete.leftchild
-                    if to_delete.leftchild:
-                        to_delete.leftchild.parent = successor
-            elif to_delete.leftchild:
-                self._transplant(to_delete, to_delete.leftchild)
-            elif to_delete.rightchild:
-                self._transplant(to_delete, to_delete.rightchild)
+                    self._transplant(node_to_delete, successor)
+                    successor.leftchild = node_to_delete.leftchild
+                    if node_to_delete.leftchild:
+                        node_to_delete.leftchild.parent = successor
+            elif node_to_delete.leftchild:
+                self._transplant(node_to_delete, node_to_delete.leftchild)
+            elif node_to_delete.rightchild:
+                self._transplant(node_to_delete, node_to_delete.rightchild)
             else:
                 self.root = None  
-            
             if self.root:
                 self.root.parent = None
-            del to_delete
+            del node_to_delete
 
 
