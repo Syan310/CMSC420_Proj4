@@ -2,29 +2,43 @@ from __future__ import annotations
 import json
 from typing import Optional
 
-class Node:
-    def __init__(self, key: int, leftchild: Optional[Node] = None, rightchild: Optional[Node] = None, parent: Optional[Node] = None):
-        self.key = key
-        self.leftchild = leftchild
+# DO NOT MODIFY!
+class Node():
+    def  __init__(self,
+                  key       : int,
+                  leftchild  = None,
+                  rightchild = None,
+                  parent     = None,):
+        self.key        = key
+        self.leftchild  = leftchild
         self.rightchild = rightchild
-        self.parent = parent
+        self.parent     = parent
 
-class SplayTree:
-    def __init__(self, root: Optional[Node] = None):
+# DO NOT MODIFY!
+class SplayTree():
+    def  __init__(self,
+                  root : Node = None):
         self.root = root
 
+    # For the tree rooted at root:
+    # Return the json.dumps of the object with indent=2.
+    # DO NOT MODIFY!
     def dump(self) -> str:
-            def _to_dict(node: Optional[Node]) -> dict:
-                if not node:
-                    return None
-                pk = node.parent.key if node.parent else None
-                return {
-                    "key": node.key,
-                    "left": _to_dict(node.leftchild),
-                    "right": _to_dict(node.rightchild),
-                    "parentkey": pk
-                }
-            return json.dumps(_to_dict(self.root), indent=2)
+        def _to_dict(node) -> dict:
+            pk = None
+            if node.parent is not None:
+                pk = node.parent.key
+            return {
+                "key": node.key,
+                "left": (_to_dict(node.leftchild) if node.leftchild is not None else None),
+                "right": (_to_dict(node.rightchild) if node.rightchild is not None else None),
+                "parentkey": pk
+            }
+        if self.root == None:
+            dict_repr = {}
+        else:
+            dict_repr = _to_dict(self.root)
+        return json.dumps(dict_repr,indent = 2)
         
     def _splay(self, node: Optional[Node]):
         while node.parent:
